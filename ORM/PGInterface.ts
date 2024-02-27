@@ -24,8 +24,9 @@ class PGInterface {
         if (options.order) {
             queryString += ` ORDER BY ${options.order}`
         }
-        const response = await this.#dbquery(queryString);
-        return response;
+        // const response = await this.#dbquery(queryString);
+        // return response;
+        return await this.#dbquery(queryString);
     }
 
     async insert(options: IInsert): Promise<any[]> {
