@@ -24,8 +24,6 @@ class PGInterface {
         if (options.order) {
             queryString += ` ORDER BY ${options.order}`
         }
-        // const response = await this.#dbquery(queryString);
-        // return response;
         return await this.#dbquery(queryString);
     }
 
@@ -35,25 +33,21 @@ class PGInterface {
         if (options.returns && options.returns.length > 0) {
             queryString += ` RETURNING ${options.returns.join(',')}`
         }
-        const response = await this.#dbquery(queryString);
-        return response;
+        return await this.#dbquery(queryString);
     }
 
     async update(options: IUpdate): Promise<any[]> {
         let queryString = `UPDATE ${options.table} SET ${options.set.join(',')} WHERE ${options.condition}`
-        const response = await this.#dbquery(queryString)
-        return response;
+        return await this.#dbquery(queryString);
     }
 
     async delete(options: IDelete): Promise<any[]> {
         let queryString = `DELETE FROM ${options.table} WHERE ${options.condition}`
-        const response = await this.#dbquery(queryString);
-        return response;
+        return await this.#dbquery(queryString);
     }
 
     async customQuery(queryString: string): Promise<any[]> {
-        const response = await this.#dbquery(queryString);
-        return response;
+        return await this.#dbquery(queryString);
     }
 
     async #dbquery(query: string): Promise<any[]> {

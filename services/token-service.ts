@@ -56,9 +56,7 @@ class TokenService {
 
     validateRefreshToken(token: string) {
         try {
-            // const userData = jwt.verify(token, 'jwt-refresh-secret-r1zz0ne') //TODO: вынести в .env
-            // return userData;
-            return jwt.verify(token, 'jwt-refresh-secret-r1zz0ne');
+            return jwt.verify(token, 'jwt-refresh-secret-r1zz0ne'); //TODO: вынести в .env
         } catch (e: any) {
             return null;
         }
