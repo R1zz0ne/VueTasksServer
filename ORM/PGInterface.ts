@@ -38,6 +38,9 @@ class PGInterface {
 
     async update(options: IUpdate): Promise<any[]> {
         let queryString = `UPDATE ${options.table} SET ${options.set.join(',')} WHERE ${options.condition}`
+        if (options.returns && options.returns.length > 0) {
+            queryString += ` RETURNING ${options.returns.join(',')}`
+        }
         return await this.#dbquery(queryString);
     }
 
@@ -87,7 +90,8 @@ interface IDelete {
 interface IUpdate {
     table: string,
     set: string[],
-    condition: string
+    condition: string,
+    returns?: string[]
 }
 
 export default new PGInterface();

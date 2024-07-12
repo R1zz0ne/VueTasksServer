@@ -71,6 +71,16 @@ class UserService {
         await tokenService.saveToken(userDTO.user_id, tokens.refreshToken);
         return {...tokens, user: userDTO}
     }
+
+    async getUsers(filter: string) {
+        const filterString: string = `%${filter}%`
+        const users = await PGInterface.select({
+            table: 'users',
+            fields: ['user_id', 'name', 'email'],
+            condition: `name LIKE '${filterString}'`
+        })
+        return users
+    }
 }
 
 export default new UserService();

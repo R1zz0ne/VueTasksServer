@@ -3,17 +3,19 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import router from "./router/router";
 import errorMiddleware from "./middlewares/error-middleware";
+import './cronJobs/cronJobs';
+import 'dotenv/config';
 
-const PORT: number = 5000;
+const PORT: number = Number(process.env.PORT) || 5000;
 const app: Express = express();
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
     credentials: true,
-    origin: 'http://localhost:5173'
+    origin: process.env.CLIENT
 }));
-app.use('/api/', router)
+app.use('/api/', router);
 app.use(errorMiddleware);
 
 const start = async () => {

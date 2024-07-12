@@ -54,6 +54,16 @@ class UserController {
             next(e)
         }
     }
+
+    async getUsers(req: Request, res: Response, next: NextFunction) {
+        try {
+            const query = req.query.query as string;
+            const users = await userService.getUsers(query);
+            return res.json(users);
+        } catch (e) {
+            next(e);
+        }
+    }
 }
 
 export default new UserController();

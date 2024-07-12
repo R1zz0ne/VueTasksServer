@@ -1,0 +1,49 @@
+version: '3.5'
+
+services:
+  server:
+    container_name: vueTasksServe
+    build:
+      context: ./VueTasksServer
+      dockerfile: Dockerfile.dev
+    ports:
+      - 5000:5000
+    volumes:
+      - ./VueTasksServer:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - vueTasksNetwork
+  postgres:
+    container_name: postgres
+    image: postgres:15.5-bullseye
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Qwerty123
+      POSTGRES_DB: vue_tasks
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+    networks:
+      - vueTasksNetwork
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:8.1
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "temp@temp.ru"
+      PGADMIN_DEFAULT_PASSWORD: "Qwerty123"
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - ./postgres/pgadmin:/var/lib/pgadmin
+    ports:
+      - 5050:80
+    restart: on-failure
+    depends_on:
+      - postgres
+    networks:
+      - vueTasksNetwork
+networks:
+  vueTasksNetwork:

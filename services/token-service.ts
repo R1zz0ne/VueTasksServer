@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 import PGInterface from "../ORM/PGInterface";
+import apiError from "../exceptions/api-error";
+import "dotenv/config";
 
 declare module "jsonwebtoken" {
     export interface JwtPayload {
@@ -11,8 +13,8 @@ declare module "jsonwebtoken" {
 
 class TokenService {
     generateTokens(payload: object) {
-        const accessToken: string = jwt.sign(payload, 'jwt-access-secret-r1zz0ne'); //TODO: вынести в .env
-        const refreshToken: string = jwt.sign(payload, 'jwt-refresh-secret-r1zz0ne'); //TODO: вынести в .env
+        const accessToken: string = jwt.sign(payload, process.env.JWT_ACCESS_SECRET!);
+        const refreshToken: string = jwt.sign(payload, process.env.JWT_REFRESH_SECRET!);
         return {
             accessToken,
             refreshToken
@@ -54,12 +56,35 @@ class TokenService {
         })
     }
 
+    validateAccessToken(token: string) {
+        try {
+            return jwt.verify(token, process.env.JWT_ACCESS_SECRET!)
+        } catch (e) {
+            return null;
+        }
+    }
+
     validateRefreshToken(token: string) {
         try {
-            return jwt.verify(token, 'jwt-refresh-secret-r1zz0ne'); //TODO: вынести в .env
+            return jwt.verify(token, process.env.JWT_REFRESH_SECRET!);
         } catch (e: any) {
             return null;
         }
+    }
+
+    getUserDataInAuthData(authHead: string | undefined) {
+        if (!authHead) {
+            throw (apiError.UnauthorizedError());
+        }
+        const accessToken: string = authHead.split(' ')[1];
+        if (!accessToken) {
+            throw (apiError.UnauthorizedError())
+        }
+        const userData = this.validateAccessToken(accessToken);
+        if (!userData) {
+            throw (apiError.UnauthorizedError())
+        }
+        return userData
     }
 }
 
