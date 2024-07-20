@@ -2,7 +2,7 @@ import pg, {QueryResult} from "pg";
 
 const Pool = pg.Pool;
 
-const db = new Pool({
+const db = new Pool({ //TODO: вынести в .env
     user: "postgres",
     password: "Qwerty123",
     host: "postgres",
