@@ -24,7 +24,7 @@ export interface ITask {
     task_id: number,
     name: string,
     description: string,
-    priority: number,
+    priority: string,
     complation_date: string, //'YYYY-MM-DD'
     project_id: number,
     member: number,

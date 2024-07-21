@@ -8,7 +8,7 @@ class TaskService {
         const taskArr: ITask[] = await PGInterface.insert({
             table: 'tasks',
             fields: ['name', 'description', 'priority', 'complation_date', 'project_id', 'member', 'status'],
-            values: [`'${name}'`, `'${description}'`, `${priority}`, `'${complation_date}'`, `${project_id}`, `${member}`, `'assigned'`],
+            values: [`'${name}'`, `'${description}'`, `'${priority}'`, `'${complation_date}'`, `${project_id}`, `${member}`, `'assigned'`],
             returns: ['*']
         })
         const task: ITask = taskArr[0];
@@ -43,7 +43,7 @@ class TaskService {
         })
         const taskArr: ITask[] = await PGInterface.update({
             table: 'tasks',
-            set: [`name='${name}'`, `description='${description}'`, `priority=${priority}`,
+            set: [`name='${name}'`, `description='${description}'`, `priority='${priority}'`,
                 `complation_date='${complation_date}'`, `project_id=${project_id}`, `member=${memberId}`, `status='${status}'`],
             condition: `task_id=${task_id}`,
             returns: ['*']
