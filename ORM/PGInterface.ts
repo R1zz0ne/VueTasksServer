@@ -1,13 +1,14 @@
 import pg, {QueryResult} from "pg";
+import 'dotenv/config';
 
 const Pool = pg.Pool;
 
-const db = new Pool({ //TODO: вынести в .env
-    user: "postgres",
-    password: "Qwerty123",
-    host: "postgres",
-    port: 5432,
-    database: "vue_tasks"
+const db = new Pool({
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    database: process.env.DB_DATABASE,
 })
 
 class PGInterface {
