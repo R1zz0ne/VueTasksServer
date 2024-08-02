@@ -67,3 +67,27 @@ export interface ICurrentData extends Pick<INotification, 'task_id' | 'scheduled
     email: string,
     taskstatus: 'assigned' | 'in_progress' | 'complited'
 }
+
+export interface ICreateProjectData {
+    name: string,
+    description: string,
+    owner: number
+}
+
+export interface IUpdateProjectData extends ICreateProjectData {
+    project_id: number
+}
+
+export interface IRegistrationData {
+    name: string,
+    email: string,
+    password: string,
+}
+
+export interface IResreshTokenData {
+    refreshToken: string,
+}
+
+export interface IGetUsersData {
+    query: string
+}

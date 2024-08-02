@@ -1,23 +1,17 @@
-import {NextFunction, Request, Response} from "express";
 import apiError from "../exceptions/api-error";
 import tokenService from "../services/token-service";
 
-export default function (req: Request, res: Response, next: NextFunction) {
+export default function (data: any, token: any) {
     try {
-        const authorizationHeader = req.headers.authorization;
-        if (!authorizationHeader) {
-            return next(apiError.UnauthorizedError());
+        if (!token) {
+            throw apiError.UnauthorizedError()
         }
-        const accessToken = authorizationHeader.split(' ')[1];
-        if (!accessToken) {
-            return next(apiError.UnauthorizedError());
-        }
-        const userData = tokenService.validateAccessToken(accessToken);
+        const userData = tokenService.validateAccessToken(token);
         if (!userData) {
-            return next(apiError.UnauthorizedError());
+            throw apiError.UnauthorizedError()
         }
-        next();
+        return userData
     } catch (error) {
-        return next(apiError.UnauthorizedError());
+        throw error
     }
 }

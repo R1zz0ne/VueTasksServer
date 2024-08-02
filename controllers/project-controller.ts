@@ -1,42 +1,42 @@
-import {NextFunction, Request, Response} from "express";
 import ProjectService from "../services/project-service";
+import {ICreateProjectData, IUpdateProjectData} from "../models/models";
 
 class ProjectController {
-    async createProject(req: Request, res: Response, next: NextFunction) {
+    async createProject(data: ICreateProjectData, callback: Function) {
         try {
-            const {name, description, owner} = req.body;
+            const {name, description, owner} = data;
             const projectData = await ProjectService.createProject(name, description, owner);
-            return res.json(projectData);
-        } catch (e) {
-            next(e);
+            callback(projectData)
+        } catch (e: any) {
+            throw e;
         }
     }
 
-    async updateProject(req: Request, res: Response, next: NextFunction) {
+    async updateProject(data: IUpdateProjectData, callback: Function) {
         try {
-            const {id, name, description, owner} = req.body;
-            const projectData = await ProjectService.updateProject(id, name, description, owner)
-            return res.json(projectData)
+            const {project_id, name, description, owner} = data;
+            const projectData = await ProjectService.updateProject(project_id, name, description, owner)
+            callback(projectData);
         } catch (e) {
-            next(e)
+            throw e;
         }
     }
 
-    async getProjectList(req: Request, res: Response, next: NextFunction) {
+    async getProjectList(data: null, callback: Function) {
         try {
             const projectList = await ProjectService.getProjectList();
-            return res.json(projectList)
-        } catch (e) {
-            next(e);
+            callback(projectList)
+        } catch (e: any) {
+            throw e;
         }
     }
 
-    async getProject(req: Request, res: Response, next: NextFunction) {
+    async getProject(data: { projectId: number }, callback: Function) {
         try {
-            const project = await ProjectService.getProject(Number(req.query.id));
-            return res.json(project)
+            const project = await ProjectService.getProject(data.projectId);
+            callback(project)
         } catch (e) {
-            next(e)
+            throw e;
         }
     }
 }

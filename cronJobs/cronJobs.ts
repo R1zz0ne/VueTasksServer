@@ -64,7 +64,7 @@ cron.schedule(process.env.CRON_JOBS_INTERVAL!, async () => {
             fields: ['*'],
             condition: `scheduled_time BETWEEN '${now}' AND '${future}' AND status = 'scheduled'`
         })
-        res.forEach(async record => {
+        res.forEach(async (record) => {
             try {
                 const compDate = record.scheduled_time;
                 if (new Date(compDate) > newDate) {

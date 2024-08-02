@@ -13,8 +13,8 @@ declare module "jsonwebtoken" {
 
 class TokenService {
     generateTokens(payload: object) {
-        const accessToken: string = jwt.sign(payload, process.env.JWT_ACCESS_SECRET!);
-        const refreshToken: string = jwt.sign(payload, process.env.JWT_REFRESH_SECRET!);
+        const accessToken: string = jwt.sign(payload, process.env.JWT_ACCESS_SECRET!, {expiresIn: '30m'});
+        const refreshToken: string = jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {expiresIn: '30d'});
         return {
             accessToken,
             refreshToken

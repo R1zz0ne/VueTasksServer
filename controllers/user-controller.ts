@@ -1,67 +1,52 @@
-import {NextFunction, Request, Response} from "express";
 import userService from "../services/user-service";
+import {IGetUsersData, IRegistrationData, IResreshTokenData} from "../models/models";
 
 class UserController {
-    async registration(req: Request, res: Response, next: NextFunction) {
+    async registration(data: IRegistrationData, callback: Function) {
         try {
-            const {email, password, name} = req.body;
+            const {email, password, name} = data;
             const userData = await userService.registration(email, password, name);
-            res.cookie('refreshToken', userData.refreshToken, {
-                maxAge: 30 * 24 * 60 * 60 * 1000,
-                httpOnly: true
-            });
-            return res.json(userData);
+            callback(userData)
         } catch (e: any) {
-            next(e);
+            throw e;
         }
     }
 
-    async login(req: Request, res: Response, next: NextFunction) {
+    async login(data: Omit<IRegistrationData, 'name'>, callback: Function) {
         try {
-            const {email, password} = req.body;
+            const {email, password} = data;
             const userData = await userService.login(email, password);
-            res.cookie('refreshToken', userData.refreshToken, {
-                maxAge: 30 * 24 * 60 * 60 * 1000,
-                httpOnly: true
-            })
-            return res.json(userData);
+            callback(userData)
         } catch (e: any) {
-            next(e)
+            throw e;
         }
     }
 
-    async logout(req: Request, res: Response, next: NextFunction) {
+    async logout(data: IResreshTokenData, callback: Function) {
         try {
-            const {refreshToken} = req.cookies;
-            await userService.logout(refreshToken);
-            res.clearCookie('refreshToken');
-            res.json();
+            await userService.logout(data.refreshToken);
+            callback(true)
         } catch (e: any) {
-            next(e)
+            throw e;
         }
     }
 
-    async refresh(req: Request, res: Response, next: NextFunction) {
+    async refresh(data: IResreshTokenData, callback: Function) {
         try {
-            const {refreshToken} = req.cookies;
-            const userData = await userService.refresh(refreshToken);
-            res.cookie('refreshToken', userData.refreshToken, {
-                maxAge: 30 * 24 * 60 * 60 * 1000,
-                httpOnly: true
-            })
-            return res.json(userData);
+            const userData = await userService.refresh(data.refreshToken);
+            callback(userData)
         } catch (e: any) {
-            next(e)
+            throw e;
         }
     }
 
-    async getUsers(req: Request, res: Response, next: NextFunction) {
+
+    async getUsers(data: IGetUsersData, callback: Function) {
         try {
-            const query = req.query.query as string;
-            const users = await userService.getUsers(query);
-            return res.json(users);
+            const users = await userService.getUsers(data.query);
+            callback(users);
         } catch (e) {
-            next(e);
+            throw e;
         }
     }
 }

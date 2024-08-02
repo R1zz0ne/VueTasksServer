@@ -1,31 +1,18 @@
-import express, {Express} from "express";
-import cookieParser from "cookie-parser";
-import cors from "cors";
-import router from "./router/router";
-import errorMiddleware from "./middlewares/error-middleware";
+import express from "express";
+import http from 'http';
+import {Server} from 'socket.io';
 import './cronJobs/cronJobs';
 import 'dotenv/config';
+import socketRouter from "./router/router";
+
+const app = express()
+const httpServer = http.createServer(app)
+const io = new Server(httpServer, {cors: {origin: '*'}})
 
 const PORT: number = Number(process.env.PORT) || 5000;
-const app: Express = express();
 
-app.use(express.json());
-app.use(cookieParser());
-app.use(cors({
-    credentials: true,
-    origin: process.env.CLIENT
-}));
-app.use('/api/', router);
-app.use(errorMiddleware);
+io.on('connection', socketRouter)
 
-const start = async () => {
-    try {
-        app.listen(PORT, () => {
-            console.log(`Сервер запущен на ${PORT} порту.`)
-        })
-    } catch (e: any) {
-        console.log(e)
-    }
-}
-
-start();
+httpServer.listen(PORT, () => {
+    console.log(`Сервер запущен на ${PORT} порту.`)
+})

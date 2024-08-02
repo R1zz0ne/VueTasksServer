@@ -3,7 +3,7 @@ import {IOwner, ITask, ITaskStatus, ITasksWithMemberAndProject} from "../models/
 import OtherService from "./other-service";
 
 class TaskService {
-    async createTask(name: string, description: string, priority: number,
+    async createTask(name: string, description: string, priority: string,
                      complation_date: string, project_id: number, member: number) {
         const taskArr: ITask[] = await PGInterface.insert({
             table: 'tasks',
@@ -34,7 +34,7 @@ class TaskService {
         };
     }
 
-    async updateTask(task_id: number, name: string, description: string, priority: number,
+    async updateTask(task_id: number, name: string, description: string, priority: string,
                      complation_date: string, project_id: number, memberId: number, status: string) {
         const compDate = await PGInterface.select({
             table: 'tasks',
