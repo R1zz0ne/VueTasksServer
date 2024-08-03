@@ -32,7 +32,7 @@ class TaskController {
     //Получение списка моих задач
     async getUserTasks(data: any, callback: Function, userData: JwtPayload) {
         try {
-            const taskData = await TaskService.getUserTasks(userData.user_id, "status!='complited'");
+            const taskData = await TaskService.getUserTasks(userData.user_id, "status!='completed'");
             callback(taskData)
         } catch (e) {
             throw e;
@@ -62,7 +62,7 @@ class TaskController {
     //Получение списка моих завершенных задач
     async getCloseUserTasks(data: any, callback: Function, userData: JwtPayload) {
         try {
-            const taskData = await TaskService.getUserTasks(userData.user_id, "status='complited'");
+            const taskData = await TaskService.getUserTasks(userData.user_id, "status='completed'");
             callback(taskData)
         } catch (e) {
             throw e;

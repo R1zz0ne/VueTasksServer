@@ -1,5 +1,5 @@
 import userService from "../services/user-service";
-import {IGetUsersData, IRegistrationData, IResreshTokenData} from "../models/models";
+import {IGetUsersData, IRegistrationData, IRefreshTokenData} from "../models/models";
 
 class UserController {
     async registration(data: IRegistrationData, callback: Function) {
@@ -22,7 +22,7 @@ class UserController {
         }
     }
 
-    async logout(data: IResreshTokenData, callback: Function) {
+    async logout(data: IRefreshTokenData, callback: Function) {
         try {
             await userService.logout(data.refreshToken);
             callback(true)
@@ -31,7 +31,7 @@ class UserController {
         }
     }
 
-    async refresh(data: IResreshTokenData, callback: Function) {
+    async refresh(data: IRefreshTokenData, callback: Function) {
         try {
             const userData = await userService.refresh(data.refreshToken);
             callback(userData)

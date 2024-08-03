@@ -60,12 +60,12 @@ export interface INotification {
 export enum taskStatusMap {
     assigned = 'Назначено',
     in_progress = 'В работе',
-    complited = 'Завершено',
+    completed = 'Завершено',
 }
 
 export interface ICurrentData extends Pick<INotification, 'task_id' | 'scheduled_time' | 'status' | 'type'> {
     email: string,
-    taskstatus: 'assigned' | 'in_progress' | 'complited'
+    taskstatus: 'assigned' | 'in_progress' | 'completed'
 }
 
 export interface ICreateProjectData {
@@ -84,7 +84,7 @@ export interface IRegistrationData {
     password: string,
 }
 
-export interface IResreshTokenData {
+export interface IRefreshTokenData {
     refreshToken: string,
 }
 
