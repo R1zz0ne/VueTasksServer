@@ -18,11 +18,12 @@ class TaskController {
     }
 
     //Обновление задачи
-    async updateTask(data: ITask, callback: Function) {
+    async updateTask(data: ITask, callback: Function, userData: JwtPayload) {
         try {
-            const {task_id, name, description, priority, complation_date, project_id, member, status} = data;
+            const {task_id, name, description, priority,
+                complation_date, project_id, member, status} = data;
             const taskData = await TaskService.updateTask(task_id, name, description, priority,
-                complation_date, project_id, member, status);
+                complation_date, project_id, member, status, userData);
             callback(taskData);
         } catch (e) {
             throw e;

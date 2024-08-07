@@ -7,7 +7,7 @@ import socketRouter from "./router/router";
 
 const app = express()
 const httpServer = http.createServer(app)
-const io = new Server(httpServer, {cors: {origin: '*'}})
+export const io = new Server(httpServer, {cors: {origin: '*'}})
 
 const PORT: number = Number(process.env.PORT) || 5000;
 

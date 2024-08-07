@@ -1,6 +1,8 @@
 import PGInterface from "../ORM/PGInterface";
 import {IOwner, ITask, ITaskStatus, ITasksWithMemberAndProject} from "../models/models";
 import OtherService from "./other-service";
+import {JwtPayload} from "jsonwebtoken";
+import NotificationService from "./notification-service";
 
 class TaskService {
     async createTask(name: string, description: string, priority: string,
@@ -12,14 +14,15 @@ class TaskService {
             returns: ['*']
         })
         const task: ITask = taskArr[0];
-        //Создание записи в таблице уведомлений
+        //Создание записи SLA в таблице уведомлений
         await PGInterface.insert({
-            table: 'notifications',
+            table: 'notification_sla',
             fields: ['task_id', 'scheduled_time', 'status', 'type'],
             values: [`${task.task_id}`, `'${complation_date}'`, `'scheduled'`, `'sla'`],
             returns: ['*']
         })
-        //Создание записи в таблице уведомлений
+        //Создание записи о назначении задачи в таблице уведомлений
+        await NotificationService.addNotification(task.task_id, member, 'Эта задача была назначена вам')
         const memberInfo: IOwner = await OtherService.getUserInfo(task.member);
         const projectInfo = await OtherService.getShortProjectInfo(task.project_id);
         return {
@@ -35,12 +38,19 @@ class TaskService {
     }
 
     async updateTask(task_id: number, name: string, description: string, priority: string,
-                     complation_date: string, project_id: number, memberId: number, status: string) {
+                     complation_date: string, project_id: number, memberId: number, status: string, userData: JwtPayload) {
         const compDate = await PGInterface.select({
             table: 'tasks',
             fields: ['complation_date'],
             condition: `task_id=${task_id}`
         })
+        //получить id пользователя
+        const oldUser = await PGInterface.select({
+            table: 'tasks',
+            fields: ['member'],
+            condition: `task_id=${task_id}`
+        })
+        //обновление задачи
         const taskArr: ITask[] = await PGInterface.update({
             table: 'tasks',
             set: [`name='${name}'`, `description='${description}'`, `priority='${priority}'`,
@@ -49,27 +59,32 @@ class TaskService {
             returns: ['*']
         })
         const notificationrecord = await PGInterface.select({
-            table: 'notifications',
+            table: 'notification_sla',
             fields: ['notification_id'],
             condition: `task_id=${task_id}`
         })
         if (notificationrecord[0]) {
             if (compDate[0].complation_date !== complation_date) {
                 await PGInterface.update({
-                    table: 'notifications',
+                    table: 'notification_sla',
                     set: [`scheduled_time='${complation_date}'`, `status='scheduled'`],
                     condition: `task_id=${task_id}`
                 })
             }
         } else {
             await PGInterface.insert({
-                table: 'notifications',
+                table: 'notification_sla',
                 fields: ['task_id', 'scheduled_time', 'status', 'type'],
                 values: [`${task_id}`, `'${complation_date}'`, `'scheduled'`, `'sla'`]
             })
         }
-
         const task: ITask = taskArr[0];
+        if (oldUser[0].member !== task.member) {
+            //Создание уведомления о назначении задачи
+            await NotificationService.addNotification(task.task_id, task.member, 'Эта задача была назначена вам')
+            //Создание уведомления об изменении назначения задачи
+            await NotificationService.addNotification(task.task_id, oldUser[0].member, `${userData.name} изменил(а) назначение задачи, она больше не назначена вам`)
+        }
         const memberInfo = await OtherService.getUserInfo(task.member);
         const projectInfo = await OtherService.getShortProjectInfo(task.project_id);
         return {

@@ -60,7 +60,7 @@ cron.schedule(process.env.CRON_JOBS_INTERVAL!, async () => {
         const future = new Date(newDate.getTime() +
             Number(process.env.CRON_JOBS_RANGE_TIME) * 60000).toISOString();
         const res: INotification[] = await PGInterface.select({
-            table: 'notifications',
+            table: 'notification_sla',
             fields: ['*'],
             condition: `scheduled_time BETWEEN '${now}' AND '${future}' AND status = 'scheduled'`
         })
@@ -69,20 +69,20 @@ cron.schedule(process.env.CRON_JOBS_INTERVAL!, async () => {
                 const compDate = record.scheduled_time;
                 if (new Date(compDate) > newDate) {
                     await PGInterface.update({
-                        table: 'notifications',
+                        table: 'notification_sla',
                         set: [`status='pending'`],
                         condition: `notification_id=${record.notification_id}`
                     });
                     schedule.scheduleJob(compDate, async () => {
                         const currentData: ICurrentData[] = await PGInterface.select({
-                            table: 'notifications',
-                            fields: ['tasks.task_id', 'notifications.scheduled_time', 'notifications.status',
-                                'notifications.type', 'users.email', 'tasks.status AS taskStatus'],
+                            table: 'notification_sla',
+                            fields: ['tasks.task_id', 'notification_sla.scheduled_time', 'notification_sla.status',
+                                'notification_sla.type', 'users.email', 'tasks.status AS taskStatus'],
                             join: [{
                                 type: 'INNER JOIN',
                                 table: 'tasks',
                                 firstId: 'tasks.task_id',
-                                secondId: 'notifications.task_id'
+                                secondId: 'notification_sla.task_id'
                             }, {
                                 type: 'INNER JOIN',
                                 table: 'users',
@@ -96,7 +96,7 @@ cron.schedule(process.env.CRON_JOBS_INTERVAL!, async () => {
                                 `Превышен срок выполнения задачи #${currentData[0].task_id}`,
                                 emailTemplate(currentData[0].task_id, taskStatusMap[currentData[0].taskstatus], currentData[0].scheduled_time.toISOString()))
                             await PGInterface.update({
-                                table: 'notifications',
+                                table: 'notification_sla',
                                 set: [`status='completed'`],
                                 condition: `notification_id=${record.notification_id}`
                             });
@@ -105,7 +105,7 @@ cron.schedule(process.env.CRON_JOBS_INTERVAL!, async () => {
                 }
             } catch (e) {
                 await PGInterface.update({
-                    table: 'notifications',
+                    table: 'notification_sla',
                     set: [`status='failed'`],
                     condition: `notification_id=${record.notification_id}`
                 });

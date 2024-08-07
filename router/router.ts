@@ -4,8 +4,11 @@ import projectController from "../controllers/project-controller";
 import taskController from "../controllers/task-controller";
 import {Socket} from "socket.io";
 import {DefaultEventsMap} from "socket.io/dist/typed-events";
+import PGInterface from "../ORM/PGInterface";
+import {JwtPayload} from "jsonwebtoken";
+import notificationController from "../controllers/notification-controller";
 
-type TControllerFunction = (data: any, socket: Socket<DefaultEventsMap>, eventName: string) => Promise<any>;
+type TControllerFunction = (data: any, socket: Socket<DefaultEventsMap>, eventName: string, userData: any) => Promise<any>;
 type TControllerCallbackFunction = (data: any, callback: Function, userData: any) => Promise<any>;
 
 const socketControllerWrapper = (
@@ -13,12 +16,14 @@ const socketControllerWrapper = (
     middleware: Function | null = null
 ) => async (data: any, socket: Socket, eventName: string) => {
     try {
+        let userData: any = {}
         if (middleware) {
-            await middleware(data)
+            const accessToken = socket.handshake.headers.accesstoken;
+            userData = await middleware(data, accessToken)
         }
-        await controller(data, socket, eventName)
+        await controller(data, socket, eventName, userData)
     } catch (e: any) {
-        socket.emit('error', {status: e.status, message: e.message});
+        socket.emit('error', {type: 'error', message: e.message});
     }
 }
 
@@ -40,6 +45,20 @@ const socketControllerCallbackWrapper = (
 
 const socketRouter = (socket: Socket) => {
     console.log(`Пользователь ${socket.id} подключен`)
+    if (socket.handshake.headers.accesstoken !== 'null') {
+        try {
+            const userData: string | JwtPayload = authMiddleware(null, socket.handshake.headers.accesstoken);
+            if (typeof userData !== 'string') {
+                PGInterface.update({
+                    table: 'users',
+                    condition: `user_id=${userData.user_id}`,
+                    set: [`socket_id='${socket.id}'`],
+                })
+            }
+        } catch (e) {
+            console.log(`Токен истек. Подробности: ${e}`)
+        }
+    }
 
     const handleEvent = (eventName: string, controller: TControllerFunction, middleware: Function | null = null) => {
         socket.on(eventName, (data: any) => {
@@ -84,8 +103,16 @@ const socketRouter = (socket: Socket) => {
     socket.on('getCloseTaskList', (data, callback) =>
         socketControllerCallbackWrapper(taskController.getCloseUserTasks, authMiddleware)(data, callback, socket))
 
-    socket.on('disconnect', () => {
+    //notificationController
+    handleEvent('getNotification', notificationController.getNotificationLog, authMiddleware)
+
+    socket.on('disconnect', async () => {
         console.log('Client disconnected');
+        await PGInterface.update({
+            table: 'users',
+            set: [`socket_id=''`],
+            condition: `socket_id='${socket.id}'`
+        })
     });
 }
 
