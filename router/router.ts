@@ -18,7 +18,7 @@ const socketControllerWrapper = (
     try {
         let userData: any = {}
         if (middleware) {
-            const accessToken = socket.handshake.headers.accesstoken;
+            const accessToken = socket.handshake.auth.accessToken;
             userData = await middleware(data, accessToken)
         }
         await controller(data, socket, eventName, userData)
@@ -34,7 +34,7 @@ const socketControllerCallbackWrapper = (
     try {
         let userData: any = {}
         if (middleware) {
-            const accessToken = socket.handshake.headers.accesstoken;
+            const accessToken = socket.handshake.auth.accessToken;
             userData = await middleware(data, accessToken)
         }
         await controller(data, callback, userData)
@@ -45,9 +45,9 @@ const socketControllerCallbackWrapper = (
 
 const socketRouter = (socket: Socket) => {
     console.log(`Пользователь ${socket.id} подключен`)
-    if (socket.handshake.headers.accesstoken !== 'null') {
+    if (socket.handshake.auth.accessToken !== 'null') {
         try {
-            const userData: string | JwtPayload = authMiddleware(null, socket.handshake.headers.accesstoken);
+            const userData: string | JwtPayload = authMiddleware(null, socket.handshake.auth.accessToken);
             if (typeof userData !== 'string') {
                 PGInterface.update({
                     table: 'users',
@@ -65,7 +65,6 @@ const socketRouter = (socket: Socket) => {
             socketControllerWrapper(controller, middleware)(data, socket, eventName);
         });
     };
-    //handleEvent('login', userController.login)
 
     //userController
     socket.on('login', (data, callback) =>
