@@ -105,6 +105,8 @@ const socketRouter = (socket: Socket) => {
 
     //notificationController
     handleEvent('getNotification', notificationController.getNotificationLog, authMiddleware)
+    socket.on('checkNotification', (data, callback) =>
+        socketControllerCallbackWrapper(notificationController.checkNotification, authMiddleware)(data, callback, socket));
 
     socket.on('disconnect', async () => {
         console.log('Client disconnected');

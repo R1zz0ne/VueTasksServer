@@ -12,6 +12,15 @@ class NotificationController {
             throw e;
         }
     }
+
+    async checkNotification(data: { notification_id: number }, callback: Function, userData: JwtPayload) {
+        try {
+            const notification = await NotificationService.checkNotification(data.notification_id);
+            callback(notification)
+        } catch (e) {
+            throw e;
+        }
+    }
 }
 
 export default new NotificationController();

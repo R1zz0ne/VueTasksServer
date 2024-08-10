@@ -17,6 +17,7 @@ class NotificationService {
         })
         return notifications
     }
+
     async addNotification(task_id: number, user_id: number, message: string): Promise<any> {
         const nowDate = new Date().toUTCString();
         const notification = await PGInterface.insert({
@@ -43,6 +44,16 @@ class NotificationService {
             task_id: taskData[0].task_id,
             created_at: notification[0].created_at,
         })
+    }
+
+    async checkNotification(notification_id: number): Promise<any> {
+        const notification = await PGInterface.update({
+            table: 'notification_log',
+            set: ['is_checked=true'],
+            condition: `notification_id=${notification_id}`,
+            returns: ['notification_id', 'is_checked']
+        })
+        return notification[0];
     }
 }
 
