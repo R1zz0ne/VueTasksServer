@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken";
 import PGInterface from "../ORM/PGInterface";
-import apiError from "../exceptions/api-error";
 import "dotenv/config";
 
 declare module "jsonwebtoken" {
@@ -70,21 +69,6 @@ class TokenService {
         } catch (e: any) {
             return null;
         }
-    }
-
-    getUserDataInAuthData(authHead: string | undefined) {
-        if (!authHead) {
-            throw (apiError.UnauthorizedError());
-        }
-        const accessToken: string = authHead.split(' ')[1];
-        if (!accessToken) {
-            throw (apiError.UnauthorizedError())
-        }
-        const userData = this.validateAccessToken(accessToken);
-        if (!userData) {
-            throw (apiError.UnauthorizedError())
-        }
-        return userData
     }
 }
 

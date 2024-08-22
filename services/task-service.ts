@@ -1,5 +1,12 @@
 import PGInterface from "../ORM/PGInterface";
-import {IOwner, ITask, ITaskStatus, ITasksWithMemberAndProject} from "../models/models";
+import {
+    IOwner,
+    ITask,
+    ITaskStatusIn,
+    ITaskStatusOut,
+    ITasksWithMemberAndProject,
+    IUpdateEditor
+} from "../models/models";
 import OtherService from "./other-service";
 import {JwtPayload} from "jsonwebtoken";
 import NotificationService from "./notification-service";
@@ -97,6 +104,7 @@ class TaskService {
             member: memberInfo,
             status: task.status
         }
+
     }
 
     async getUserTasks(user_id: number, condition?: string) {
@@ -122,7 +130,8 @@ class TaskService {
             table: 'tasks',
             fields: ['tasks.task_id', 'tasks.name', 'tasks.description', 'tasks.priority', 'tasks.complation_date',
                 'tasks.status', 'projects.project_id AS proid', 'projects.name AS proname', 'users.user_id AS memid',
-                'users.name AS memname', 'users.email AS mememail'],
+                'users.name AS memname', 'users.email AS mememail', 'editor_user.user_id AS editid',
+                'editor_user.name AS editname'],
             join: [{
                 type: 'INNER JOIN',
                 table: 'projects',
@@ -133,6 +142,11 @@ class TaskService {
                 table: 'users',
                 firstId: 'users.user_id',
                 secondId: 'tasks.member'
+            }, {
+                type: 'LEFT JOIN',
+                table: 'users AS editor_user',
+                firstId: 'editor_user.user_id',
+                secondId: 'tasks.editor'
             }],
             condition: `tasks.task_id=${task_id}`
         })
@@ -152,18 +166,48 @@ class TaskService {
                 name: task.memname,
                 email: task.mememail
             },
-            status: task.status
+            status: task.status,
+            editor: task.editid ? {user_id: task.editid, name: task.editname} : null
         }
+
     }
 
-    async updateStatusTask({task_id, status}: ITaskStatus) {
-        const taskArr: ITaskStatus[] = await PGInterface.update({
+    async updateStatusTask({task_id, status}: ITaskStatusIn) {
+        const taskArr: ITaskStatusOut[] = await PGInterface.update({
             table: 'tasks',
             set: [`status='${status}'`],
             condition: `task_id=${task_id}`,
-            returns: ['task_id', 'status']
+            returns: ['task_id', 'status', 'project_id']
         })
         return taskArr[0];
+    }
+
+    async updateEditor({task_id, editor}: Pick<ITask, 'task_id' | 'editor'>): Promise<IUpdateEditor> {
+        const taskArr = await PGInterface.update({
+            table: 'tasks',
+            set: [`editor=${editor}`],
+            condition: `task_id=${task_id}`,
+            returns: ['task_id', 'editor']
+        })
+        if (typeof editor === 'number') {
+            const user = await PGInterface.select({
+                table: 'users',
+                fields: ['user_id', 'name'],
+                condition: `user_id=${taskArr[0].editor}`,
+            })
+            return {
+                task_id: taskArr[0].task_id,
+                editor: {
+                    user_id: user[0].user_id,
+                    name: user[0].name,
+                }
+            }
+        } else {
+            return {
+                task_id: taskArr[0].task_id,
+                editor: null
+            }
+        }
     }
 }
 

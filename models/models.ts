@@ -2,7 +2,8 @@ export interface IProject {
     project_id: number,
     name: string,
     description: string,
-    owner: number
+    owner: number,
+    editor: number | null
 }
 
 export interface IOwner {
@@ -17,7 +18,9 @@ export interface IProjectWithOwner {
     description: string,
     ownid: number,
     ownname: string,
-    ownemail: string
+    ownemail: string,
+    editid: number,
+    editname: string
 }
 
 export interface ITask {
@@ -28,15 +31,18 @@ export interface ITask {
     complation_date: string, //'YYYY-MM-DD'
     project_id: number,
     member: number,
-    status: string
+    status: string,
+    editor: number | null
 }
 
-export interface ITasksWithMemberAndProject extends Omit<ITask, 'project_id' | 'member'> {
+export interface ITasksWithMemberAndProject extends Omit<ITask, 'project_id' | 'member' | 'editor'> {
     proid: number,
     proname: string,
     memid: number,
     memname: string,
-    mememail: string
+    mememail: string,
+    editid: number,
+    editname: string
 }
 
 export interface ITasksWithMember extends Omit<ITask, 'member' | 'project_id' | 'description'> {
@@ -45,8 +51,10 @@ export interface ITasksWithMember extends Omit<ITask, 'member' | 'project_id' | 
     mememail: string
 }
 
-export interface ITaskStatus extends Pick<ITask, 'task_id' | 'status'> {
+export interface ITaskStatusIn extends Omit<ITaskStatusOut, 'project_id'> {
+}
 
+export interface ITaskStatusOut extends Pick<ITask, 'task_id' | 'status' | 'project_id'> {
 }
 
 export interface INotification {
@@ -90,4 +98,8 @@ export interface IRefreshTokenData {
 
 export interface IGetUsersData {
     query: string
+}
+
+export interface IUpdateEditor extends Pick<ITask, 'task_id'> {
+    editor: Pick<IOwner, 'user_id' | 'name'> | null
 }

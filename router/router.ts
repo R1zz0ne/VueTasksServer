@@ -7,6 +7,7 @@ import {DefaultEventsMap} from "socket.io/dist/typed-events";
 import PGInterface from "../ORM/PGInterface";
 import {JwtPayload} from "jsonwebtoken";
 import notificationController from "../controllers/notification-controller";
+import OtherService from "../services/other-service";
 
 type TControllerFunction = (data: any, socket: Socket<DefaultEventsMap>, eventName: string, userData: any) => Promise<any>;
 type TControllerCallbackFunction = (data: any, callback: Function, userData: any) => Promise<any>;
@@ -81,34 +82,62 @@ const socketRouter = (socket: Socket) => {
     //projectController
     socket.on('createProject', (data, callback) =>
         socketControllerCallbackWrapper(projectController.createProject, authMiddleware)(data, callback, socket))
-    socket.on('updateProject', (data, callback) =>
-        socketControllerCallbackWrapper(projectController.updateProject, authMiddleware)(data, callback, socket))
+    handleEvent('updateProject', projectController.updateProject, authMiddleware)
     socket.on('getProjectList', (data, callback) =>
         socketControllerCallbackWrapper(projectController.getProjectList, authMiddleware)(data, callback, socket))
     socket.on('getProject', (data, callback) =>
         socketControllerCallbackWrapper(projectController.getProject, authMiddleware)(data, callback, socket))
+    handleEvent('updateProjectEditor', projectController.updateEditor, authMiddleware)
 
     //taskController
-    socket.on('createTask', (data, callback) =>
-        socketControllerCallbackWrapper(taskController.createTask, authMiddleware)(data, callback, socket))
-    socket.on('updateTask', (data, callback) =>
-        socketControllerCallbackWrapper(taskController.updateTask, authMiddleware)(data, callback, socket))
+    handleEvent('createTask', taskController.createTask, authMiddleware)
+    handleEvent('updateTask', taskController.updateTask, authMiddleware)
     socket.on('getTask', (data, callback) =>
         socketControllerCallbackWrapper(taskController.getInfoForTask, authMiddleware)(data, callback, socket))
-    socket.on('updateStatusTask', (data, callback) =>
-        socketControllerCallbackWrapper(taskController.updateStatusTask, authMiddleware)(data, callback, socket))
+    handleEvent('updateStatusTask', taskController.updateStatusTask, authMiddleware)
     socket.on('getTaskList', (data, callback) =>
         socketControllerCallbackWrapper(taskController.getUserTasks, authMiddleware)(data, callback, socket))
     socket.on('getCloseTaskList', (data, callback) =>
         socketControllerCallbackWrapper(taskController.getCloseUserTasks, authMiddleware)(data, callback, socket))
+    handleEvent('updateTaskEditor', taskController.updateEditor, authMiddleware)
 
     //notificationController
     handleEvent('getNotification', notificationController.getNotificationLog, authMiddleware)
     socket.on('checkNotification', (data, callback) =>
         socketControllerCallbackWrapper(notificationController.checkNotification, authMiddleware)(data, callback, socket));
 
+    //Room
+    socket.on('joinRoom', async (data) => {
+        if (data.id) {
+            const room = `${data.type}_${data.id}`
+            socket.join(room);
+            const users = await OtherService.getUserNameForSocketId(room);
+            await OtherService.emitToRoom(room, `${data.type}_room`, users)
+        } else {
+            socket.join(data.type)
+        }
+
+    })
+    socket.on('leaveRoom', async (data) => {
+        if (data.id) {
+            const room = `${data.type}_${data.id}`
+            socket.leave(room);
+            const users = await OtherService.getUserNameForSocketId(room);
+            await OtherService.emitToRoom(room, `${data.type}_room`, users)
+            await OtherService.cleanEditor(data.type, data.id, socket.id)
+        } else {
+            socket.leave(data.type)
+        }
+
+    })
+
+    //disconnect
+    socket.on('disconnecting', () => {
+        const rooms = Array.from(socket.rooms)
+        rooms.forEach(async (room) => await OtherService.disconnecting(room, socket))
+    })
     socket.on('disconnect', async () => {
-        console.log('Client disconnected');
+        console.log(`${socket.id} disconnected`);
         await PGInterface.update({
             table: 'users',
             set: [`socket_id=''`],

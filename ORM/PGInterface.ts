@@ -1,5 +1,6 @@
 import pg, {QueryResult} from "pg";
 import 'dotenv/config';
+import {IDelete, IInsert, ISelect, IUpdate} from "../models/pginterfaceModels";
 
 const Pool = pg.Pool;
 
@@ -58,41 +59,6 @@ class PGInterface {
         const response: QueryResult<any> = await db.query(query);
         return response.rows;
     }
-}
-
-
-interface ISelect {
-    table: string
-    fields: string[]
-    condition?: string
-    join?: IJoin[]
-    order?: string
-}
-
-interface IJoin {
-    type: 'INNER JOIN',
-    table: string,
-    firstId: string,
-    secondId: string
-}
-
-interface IInsert {
-    table: string,
-    fields: string[],
-    values: any[],
-    returns?: string[]
-}
-
-interface IDelete {
-    table: string,
-    condition: string
-}
-
-interface IUpdate {
-    table: string,
-    set: string[],
-    condition: string,
-    returns?: string[]
 }
 
 export default new PGInterface();

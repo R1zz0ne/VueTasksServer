@@ -17,7 +17,9 @@ CREATE TABLE IF NOT EXISTS projects (
     name VARCHAR(150),
     description TEXT,
     owner INTEGER,
+    editor INTEGER,
     FOREIGN KEY (owner) REFERENCES users (user_id)
+    FOREIGN KEY (editor) REFERENCES users (user_id)
 );
 
 CREATE TABLE IF NOT EXISTS tasks (
@@ -29,8 +31,10 @@ CREATE TABLE IF NOT EXISTS tasks (
     project_id INTEGER,
     member INTEGER,
     status VARCHAR(100),
+    editor INTEGER,
     FOREIGN KEY (project_id) REFERENCES projects(project_id),
     FOREIGN KEY (member) REFERENCES users(user_id)
+    FOREIGN KEY (editor) REFERENCES users(user_id)
 );
 
 CREATE TABLE IF NOT EXISTS notification_sla (

@@ -58,12 +58,18 @@ class ProjectService {
         const projects: IProjectWithOwner[] = await PGInterface.select({
             table: 'projects',
             fields: ['projects.project_id', 'projects.name', 'projects.description',
-                'users.user_id AS ownid', 'users.name AS ownname', 'users.email AS ownemail'],
+                'users.user_id AS ownid', 'users.name AS ownname', 'users.email AS ownemail',
+                'editor_user.user_id AS editid', 'editor_user.name AS editname'],
             join: [{
                 type: 'INNER JOIN',
                 table: 'users',
                 firstId: 'users.user_id',
                 secondId: 'projects.owner'
+            }, {
+                type: 'LEFT JOIN',
+                table: 'users AS editor_user',
+                firstId: 'editor_user.user_id',
+                secondId: 'projects.editor'
             }],
             condition: `projects.project_id=${id}`
         })
@@ -102,7 +108,36 @@ class ProjectService {
                 name: projects[0].ownname,
                 email: projects[0].ownemail
             },
-            tasks: mapTasks
+            tasks: mapTasks,
+            editor: projects[0].editid ? {user_id: projects[0].editid, name: projects[0].editname} : null
+        }
+    }
+
+    async updateEditor({project_id, editor}: Pick<IProject, 'project_id' | 'editor'>) {
+        const projectArr = await PGInterface.update({
+            table: 'projects',
+            set: [`editor=${editor}`],
+            condition: `project_id=${project_id}`,
+            returns: ['project_id', 'editor']
+        })
+        if (typeof projectArr[0].editor === 'number') {
+            const user = await PGInterface.select({
+                table: 'users',
+                fields: ['user_id', 'name'],
+                condition: `user_id=${projectArr[0].editor}`
+            })
+            return {
+                project_id: projectArr[0].project_id,
+                editor: {
+                    user_id: user[0].user_id,
+                    name: user[0].name,
+                }
+            }
+        } else {
+            return {
+                project_id: project_id,
+                editor: null
+            }
         }
     }
 }

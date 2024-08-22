@@ -1,5 +1,9 @@
 import ProjectService from "../services/project-service";
-import {ICreateProjectData, IUpdateProjectData} from "../models/models";
+import {ICreateProjectData, IProject, IUpdateProjectData} from "../models/models";
+import {Socket} from "socket.io";
+import {DefaultEventsMap} from "socket.io/dist/typed-events";
+import {JwtPayload} from "jsonwebtoken";
+import {io} from "../index";
 
 class ProjectController {
     async createProject(data: ICreateProjectData, callback: Function) {
@@ -12,11 +16,12 @@ class ProjectController {
         }
     }
 
-    async updateProject(data: IUpdateProjectData, callback: Function) {
+    async updateProject(data: IUpdateProjectData, socket: Socket<DefaultEventsMap>, eventName: string, userData: JwtPayload) {
         try {
             const {project_id, name, description, owner} = data;
             const projectData = await ProjectService.updateProject(project_id, name, description, owner)
-            callback(projectData);
+            io.to(`project_${projectData.project_id}`).emit(eventName, projectData)
+            io.to(`projectList`).emit(eventName, projectData)
         } catch (e) {
             throw e;
         }
@@ -35,6 +40,15 @@ class ProjectController {
         try {
             const project = await ProjectService.getProject(data.projectId);
             callback(project)
+        } catch (e) {
+            throw e;
+        }
+    }
+
+    async updateEditor(data: Pick<IProject, 'project_id' | 'editor'>, socket: Socket<DefaultEventsMap>, eventName: string) {
+        try {
+            const editorData = await ProjectService.updateEditor(data);
+            io.to(`project_${editorData.project_id}`).emit(eventName, editorData)
         } catch (e) {
             throw e;
         }
