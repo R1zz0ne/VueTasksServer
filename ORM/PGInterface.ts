@@ -26,6 +26,12 @@ class PGInterface {
         if (options.order) {
             queryString += ` ORDER BY ${options.order}`
         }
+        if (options.limit) {
+            queryString += ` LIMIT ${options.limit}`
+        }
+        if (options.offset) {
+            queryString += ` OFFSET ${options.offset}`
+        }
         return await this.#dbquery(queryString);
     }
 

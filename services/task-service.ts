@@ -94,6 +94,12 @@ class TaskService {
         }
         const memberInfo = await OtherService.getUserInfo(task.member);
         const projectInfo = await OtherService.getShortProjectInfo(task.project_id);
+
+        const editor = task.editor ? await PGInterface.select({
+            table: 'users',
+            fields: ['user_id', 'name'],
+            condition: `user_id=${task.editor}`
+        }) : null
         return {
             task_id: task.task_id,
             name: task.name,
@@ -102,24 +108,32 @@ class TaskService {
             complation_date: task.complation_date,
             project: projectInfo,
             member: memberInfo,
-            status: task.status
+            status: task.status,
+            editor: editor ? editor : null
         }
 
     }
 
-    async getUserTasks(user_id: number, condition?: string) {
+    async getUserTasks(user_id: number, page: number, condition?: string) {
+        const limit: number = 20;
         if (condition) {
             const taskArr = await PGInterface.select({
                 table: 'tasks',
                 fields: ['task_id', 'name', 'priority', 'status'],
-                condition: `member=${user_id} AND ${condition}`
+                order: 'task_id ASC',
+                condition: `member=${user_id} AND ${condition}`,
+                limit: limit,
+                offset: (page - 1) * limit
             })
             return taskArr;
         } else {
             const taskArr = await PGInterface.select({
                 table: 'tasks',
                 fields: ['task_id', 'name', 'priority', 'status'],
-                condition: `member=${user_id}`
+                order: 'task_id ASC',
+                condition: `member=${user_id}`,
+                limit: limit,
+                offset: (page - 1) * limit
             })
             return taskArr;
         }

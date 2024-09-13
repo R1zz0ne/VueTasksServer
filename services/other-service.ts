@@ -52,7 +52,11 @@ class OtherService {
                 fields: ['socket_id'],
                 condition: `user_id=${id}`,
             })
-            return data[0].socket_id;
+            if (data[0]) {
+                return data[0].socket_id;
+            } else {
+                return null;
+            }
         } catch (e) {
             console.log('getSocketIdForUserId: ' + e)
         }
@@ -79,7 +83,7 @@ class OtherService {
                     fields: ['editor'],
                     condition: `task_id=${id}`
                 })
-                if (task[0].editor === taskMeId[0].user_id) {
+                if (taskMeId[0] && task[0].editor === taskMeId[0].user_id) {
                     const editorData = await TaskService.updateEditor({
                         task_id: Number(id),
                         editor: null
@@ -98,7 +102,7 @@ class OtherService {
                     fields: ['editor'],
                     condition: `project_id=${id}`
                 })
-                if (project[0].editor === projectMeId[0].user_id) {
+                if (projectMeId[0] && project[0].editor === projectMeId[0].user_id) {
                     const editorData = await ProjectService.updateEditor({
                         project_id: Number(id),
                         editor: null
@@ -133,6 +137,15 @@ class OtherService {
         } catch (e) {
             console.log('disconnecting: ', e)
         }
+    }
+
+    async getTotalRecord(table: string, condition?: string) {
+        const totalCount = await PGInterface.select({
+            table: table,
+            fields: ['COUNT(*) AS total_count'],
+            condition: condition
+        })
+        return totalCount[0].total_count
     }
 }
 

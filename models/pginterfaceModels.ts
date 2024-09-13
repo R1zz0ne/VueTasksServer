@@ -3,7 +3,9 @@ export interface ISelect {
     fields: string[]
     condition?: string
     join?: IJoin[]
-    order?: string
+    order?: string,
+    limit?: number,
+    offset?: number
 }
 
 export interface IJoin {

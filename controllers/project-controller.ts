@@ -4,13 +4,18 @@ import {Socket} from "socket.io";
 import {DefaultEventsMap} from "socket.io/dist/typed-events";
 import {JwtPayload} from "jsonwebtoken";
 import {io} from "../index";
+import OtherService from "../services/other-service";
 
 class ProjectController {
-    async createProject(data: ICreateProjectData, callback: Function) {
+    async createProject(data: ICreateProjectData, socket: Socket<DefaultEventsMap>, eventName: string, userData: JwtPayload) {
         try {
             const {name, description, owner} = data;
             const projectData = await ProjectService.createProject(name, description, owner);
-            callback(projectData)
+            socket.emit(eventName, projectData);
+            io.to('projectList').emit('addNewProjectInList', {
+                project_id: projectData.project_id,
+                name: projectData.name
+            });
         } catch (e: any) {
             throw e;
         }
@@ -27,10 +32,13 @@ class ProjectController {
         }
     }
 
-    async getProjectList(data: null, callback: Function) {
+    async getProjectList(data: { page: number }, socket: Socket<DefaultEventsMap>,
+                         eventName: string, userData: JwtPayload) {
         try {
-            const projectList = await ProjectService.getProjectList();
-            callback(projectList)
+            const totalCount = await OtherService.getTotalRecord('projects');
+            socket.emit('projectTotalCount', {totalCount: Number(totalCount)});
+            const projectList = await ProjectService.getProjectList(data);
+            socket.emit(eventName, projectList)
         } catch (e: any) {
             throw e;
         }

@@ -80,11 +80,9 @@ const socketRouter = (socket: Socket) => {
         socketControllerCallbackWrapper(userController.getUsers, authMiddleware)(data, callback, socket))
 
     //projectController
-    socket.on('createProject', (data, callback) =>
-        socketControllerCallbackWrapper(projectController.createProject, authMiddleware)(data, callback, socket))
+    handleEvent('createProject', projectController.createProject, authMiddleware)
     handleEvent('updateProject', projectController.updateProject, authMiddleware)
-    socket.on('getProjectList', (data, callback) =>
-        socketControllerCallbackWrapper(projectController.getProjectList, authMiddleware)(data, callback, socket))
+    handleEvent('getProjectList', projectController.getProjectList, authMiddleware)
     socket.on('getProject', (data, callback) =>
         socketControllerCallbackWrapper(projectController.getProject, authMiddleware)(data, callback, socket))
     handleEvent('updateProjectEditor', projectController.updateEditor, authMiddleware)
@@ -95,10 +93,8 @@ const socketRouter = (socket: Socket) => {
     socket.on('getTask', (data, callback) =>
         socketControllerCallbackWrapper(taskController.getInfoForTask, authMiddleware)(data, callback, socket))
     handleEvent('updateStatusTask', taskController.updateStatusTask, authMiddleware)
-    socket.on('getTaskList', (data, callback) =>
-        socketControllerCallbackWrapper(taskController.getUserTasks, authMiddleware)(data, callback, socket))
-    socket.on('getCloseTaskList', (data, callback) =>
-        socketControllerCallbackWrapper(taskController.getCloseUserTasks, authMiddleware)(data, callback, socket))
+    handleEvent('getTaskList', taskController.getUserTasks, authMiddleware)
+    handleEvent('getCloseTaskList', taskController.getCloseUserTasks, authMiddleware)
     handleEvent('updateTaskEditor', taskController.updateEditor, authMiddleware)
 
     //notificationController

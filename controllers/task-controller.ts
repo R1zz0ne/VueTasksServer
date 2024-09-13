@@ -19,10 +19,15 @@ class TaskController {
             //Дальше для обновления списка задач у пользователя
             const socket_id = await OtherService.getSocketIdForUserId(taskData.member.user_id)
             const taskListRoom = io.sockets.adapter.rooms.get(`taskList`)
-            if (taskListRoom) {
+            if (taskListRoom && socket_id) {
                 const userInRoom: boolean = Array.from(taskListRoom).includes(socket_id)
                 if (userInRoom) {
-                    //TODO: Емит не сделан, т.к. не понятно как с пагинацией правильно будет сделать
+                    io.to(socket_id).emit('addNewTaskInList', {
+                        task_id: taskData.task_id,
+                        name: taskData.name,
+                        priority: taskData.priority,
+                        status: taskData.status
+                    })
                 }
             }
         } catch (e) {
@@ -49,10 +54,13 @@ class TaskController {
     }
 
     //Получение списка моих задач
-    async getUserTasks(data: any, callback: Function, userData: JwtPayload) {
+    async getUserTasks(data: any, socket: Socket<DefaultEventsMap>, eventName: string, userData: JwtPayload) {
         try {
-            const taskData = await TaskService.getUserTasks(userData.user_id, "status!='completed'");
-            callback(taskData)
+            const totalCount = await OtherService.getTotalRecord('tasks',
+                `member=${userData.user_id} AND status!='completed'`);
+            socket.emit('taskTotalCount', {totalCount: Number(totalCount)});
+            const taskData = await TaskService.getUserTasks(userData.user_id, data.page, "status!='completed'");
+            socket.emit(eventName, taskData)
         } catch (e) {
             throw e;
         }
@@ -82,10 +90,13 @@ class TaskController {
     }
 
     //Получение списка моих завершенных задач
-    async getCloseUserTasks(data: any, callback: Function, userData: JwtPayload) {
+    async getCloseUserTasks(data: any, socket: Socket<DefaultEventsMap>, eventName: string, userData: JwtPayload) {
         try {
-            const taskData = await TaskService.getUserTasks(userData.user_id, "status='completed'");
-            callback(taskData)
+            const totalCount = await OtherService.getTotalRecord('tasks',
+                `member=${userData.user_id} AND status='completed'`)
+            socket.emit('taskTotalCount', {totalCount: Number(totalCount)});
+            const taskData = await TaskService.getUserTasks(userData.user_id, data.page, "status='completed'");
+            socket.emit(eventName, taskData)
         } catch (e) {
             throw e;
         }

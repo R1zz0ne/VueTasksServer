@@ -20,7 +20,8 @@ class ProjectService {
             name: project.name,
             description: project.description,
             owner: ownerInfo[0],
-            tasks: []
+            tasks: [],
+            editor: null
         }
     }
 
@@ -45,11 +46,14 @@ class ProjectService {
         }
     }
 
-    async getProjectList() {
+    async getProjectList(data: { page: number }) {
+        const limit: number = 20;
         const projects: IProjectWithOwner[] = await PGInterface.select({
             table: 'projects',
             fields: ['project_id', 'name'],
-            order: 'project_id'
+            order: 'project_id',
+            limit: limit,
+            offset: (data.page - 1) * limit
         })
         return projects;
     }
