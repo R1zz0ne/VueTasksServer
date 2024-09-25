@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS projects (
     description TEXT,
     owner INTEGER,
     editor INTEGER,
-    FOREIGN KEY (owner) REFERENCES users (user_id)
+    FOREIGN KEY (owner) REFERENCES users (user_id),
     FOREIGN KEY (editor) REFERENCES users (user_id)
 );
 
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     status VARCHAR(100),
     editor INTEGER,
     FOREIGN KEY (project_id) REFERENCES projects(project_id),
-    FOREIGN KEY (member) REFERENCES users(user_id)
+    FOREIGN KEY (member) REFERENCES users(user_id),
     FOREIGN KEY (editor) REFERENCES users(user_id)
 );
 
