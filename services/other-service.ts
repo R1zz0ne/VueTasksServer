@@ -9,18 +9,18 @@ import ProjectService from "./project-service";
 class OtherService {
     async getUserInfo(id: number) {
         const user: IOwner[] = await PGInterface.select({
-            table: 'users',
-            fields: ['user_id', 'name', 'email'],
-            condition: `user_id=${id}`
+            table: '"users"',
+            fields: ['"userId"', '"name"', '"email"'],
+            condition: `"userId"=${id}`
         })
         return user[0];
     }
 
     async getShortProjectInfo(id: number) {
-        const project: Pick<IProject, 'project_id' | 'name'>[] = await PGInterface.select({
-            table: 'projects',
-            fields: ['project_id', 'name'],
-            condition: `project_id=${id}`
+        const project: Pick<IProject, 'projectId' | 'name'>[] = await PGInterface.select({
+            table: '"projects"',
+            fields: ['"projectId"', '"name"'],
+            condition: `"projectId"=${id}`
         })
         return project[0];
     }
@@ -32,9 +32,9 @@ class OtherService {
                 const arrayData = Array.from(data)
                 const stringSocketId = arrayData.join(`','`)
                 const users = await PGInterface.select({
-                    table: 'users',
-                    fields: ['user_id', 'name'],
-                    condition: `socket_id in ('${stringSocketId}')`,
+                    table: '"users"',
+                    fields: ['"userId"', '"name"'],
+                    condition: `"socketId" in ('${stringSocketId}')`,
                 })
                 return users;
             } else {
@@ -48,12 +48,12 @@ class OtherService {
     async getSocketIdForUserId(id: number): Promise<any> {
         try {
             const data = await PGInterface.select({
-                table: 'users',
-                fields: ['socket_id'],
-                condition: `user_id=${id}`,
+                table: '"users"',
+                fields: ['"socketId"'],
+                condition: `"userId"=${id}`,
             })
             if (data[0]) {
-                return data[0].socket_id;
+                return data[0].socketId;
             } else {
                 return null;
             }
@@ -70,22 +70,22 @@ class OtherService {
         }
     }
 
-    async cleanEditor(type: string, id: string, socket_id: string) {
+    async cleanEditor(type: string, id: string, socketId: string) {
         switch (type) {
             case 'task':
                 const taskMeId = await PGInterface.select({
-                    table: 'users',
-                    fields: ['user_id'],
-                    condition: `socket_id='${socket_id}'`
+                    table: '"users"',
+                    fields: ['"userId"'],
+                    condition: `"socketId"='${socketId}'`
                 })
                 const task: { editor: number }[] = await PGInterface.select({
-                    table: 'tasks',
-                    fields: ['editor'],
-                    condition: `task_id=${id}`
+                    table: '"tasks"',
+                    fields: ['"editor"'],
+                    condition: `"taskId"=${id}`
                 })
-                if (taskMeId[0] && task[0].editor === taskMeId[0].user_id) {
+                if (taskMeId[0] && task[0].editor === taskMeId[0].userId) {
                     const editorData = await TaskService.updateEditor({
-                        task_id: Number(id),
+                        taskId: Number(id),
                         editor: null
                     })
                     await this.emitToRoom(`${type}_${id}`, 'updateTaskEditor', editorData)
@@ -93,18 +93,18 @@ class OtherService {
                 break;
             case 'project':
                 const projectMeId = await PGInterface.select({
-                    table: 'users',
-                    fields: ['user_id'],
-                    condition: `socket_id='${socket_id}'`
+                    table: '"users"',
+                    fields: ['"userId"'],
+                    condition: `"socketId"='${socketId}'`
                 })
                 const project: { editor: number }[] = await PGInterface.select({
-                    table: 'projects',
-                    fields: ['editor'],
-                    condition: `project_id=${id}`
+                    table: '"projects"',
+                    fields: ['"editor"'],
+                    condition: `"projectId"=${id}`
                 })
-                if (projectMeId[0] && project[0].editor === projectMeId[0].user_id) {
+                if (projectMeId[0] && project[0].editor === projectMeId[0].userId) {
                     const editorData = await ProjectService.updateEditor({
-                        project_id: Number(id),
+                        projectId: Number(id),
                         editor: null
                     })
                     await this.emitToRoom(`${type}_${id}`, 'updateProjectEditor', editorData)
@@ -142,10 +142,10 @@ class OtherService {
     async getTotalRecord(table: string, condition?: string) {
         const totalCount = await PGInterface.select({
             table: table,
-            fields: ['COUNT(*) AS total_count'],
+            fields: ['COUNT(*) AS "totalCount"'],
             condition: condition
         })
-        return totalCount[0].total_count
+        return totalCount[0].totalCount
     }
 }
 

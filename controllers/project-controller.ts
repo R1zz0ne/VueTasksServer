@@ -13,7 +13,7 @@ class ProjectController {
             const projectData = await ProjectService.createProject(name, description, owner);
             socket.emit(eventName, projectData);
             io.to('projectList').emit('addNewProjectInList', {
-                project_id: projectData.project_id,
+                projectId: projectData.projectId,
                 name: projectData.name
             });
         } catch (e: any) {
@@ -23,9 +23,9 @@ class ProjectController {
 
     async updateProject(data: IUpdateProjectData, socket: Socket<DefaultEventsMap>, eventName: string, userData: JwtPayload) {
         try {
-            const {project_id, name, description, owner} = data;
-            const projectData = await ProjectService.updateProject(project_id, name, description, owner)
-            io.to(`project_${projectData.project_id}`).emit(eventName, projectData)
+            const {projectId, name, description, owner} = data;
+            const projectData = await ProjectService.updateProject(projectId, name, description, owner)
+            io.to(`project_${projectData.projectId}`).emit(eventName, projectData)
             io.to(`projectList`).emit(eventName, projectData)
         } catch (e) {
             throw e;
@@ -53,10 +53,10 @@ class ProjectController {
         }
     }
 
-    async updateEditor(data: Pick<IProject, 'project_id' | 'editor'>, socket: Socket<DefaultEventsMap>, eventName: string) {
+    async updateEditor(data: Pick<IProject, 'projectId' | 'editor'>, socket: Socket<DefaultEventsMap>, eventName: string) {
         try {
             const editorData = await ProjectService.updateEditor(data);
-            io.to(`project_${editorData.project_id}`).emit(eventName, editorData)
+            io.to(`project_${editorData.projectId}`).emit(eventName, editorData)
         } catch (e) {
             throw e;
         }

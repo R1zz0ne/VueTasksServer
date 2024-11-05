@@ -1,5 +1,5 @@
 export interface IProject {
-    project_id: number,
+    projectId: number,
     name: string,
     description: string,
     owner: number,
@@ -7,73 +7,73 @@ export interface IProject {
 }
 
 export interface IOwner {
-    user_id: number,
+    userId: number,
     name: string,
     email: string
 }
 
 export interface IProjectWithOwner {
-    project_id: number,
+    projectId: number,
     name: string,
     description: string,
-    ownid: number,
-    ownname: string,
-    ownemail: string,
-    editid: number,
-    editname: string
+    ownId: number,
+    ownName: string,
+    ownEmail: string,
+    editId: number,
+    editName: string
 }
 
 export interface ITask {
-    task_id: number,
+    taskId: number,
     name: string,
     description: string,
     priority: string,
-    complation_date: string, //'YYYY-MM-DD'
-    project_id: number,
+    completionDate: string, //'YYYY-MM-DD'
+    projectId: number,
     member: number,
     status: string,
     editor: number | null
 }
 
-export interface ITasksWithMemberAndProject extends Omit<ITask, 'project_id' | 'member' | 'editor'> {
-    proid: number,
-    proname: string,
-    memid: number,
-    memname: string,
-    mememail: string,
-    editid: number,
-    editname: string
+export interface ITasksWithMemberAndProject extends Omit<ITask, 'projectId' | 'member' | 'editor'> {
+    proId: number,
+    proName: string,
+    memId: number,
+    memName: string,
+    memEmail: string,
+    editId: number,
+    editName: string
 }
 
-export interface ITasksWithMember extends Omit<ITask, 'member' | 'project_id' | 'description'> {
-    memid: number,
-    memname: string,
-    mememail: string
+export interface ITasksWithMember extends Omit<ITask, 'member' | 'projectId' | 'description'> {
+    memId: number,
+    memName: string,
+    memEmail: string
 }
 
-export interface ITaskStatusIn extends Omit<ITaskStatusOut, 'project_id'> {
+export interface ITaskStatusIn extends Omit<ITaskStatusOut, 'projectId'> {
 }
 
-export interface ITaskStatusOut extends Pick<ITask, 'task_id' | 'status' | 'project_id'> {
+export interface ITaskStatusOut extends Pick<ITask, 'taskId' | 'status' | 'projectId'> {
 }
 
 export interface INotification {
-    notification_id: number,
-    task_id: number,
-    scheduled_time: any, //Date
+    notificationId: number,
+    taskId: number,
+    scheduledTime: any, //Date
     status: string, //scheduled (Запланировано), pending (В ожидании), completed (Завершено), failed (Ошибка)
     type: string
 }
 
 export enum taskStatusMap {
     assigned = 'Назначено',
-    in_progress = 'В работе',
+    inProgress = 'В работе',
     completed = 'Завершено',
 }
 
-export interface ICurrentData extends Pick<INotification, 'task_id' | 'scheduled_time' | 'status' | 'type'> {
+export interface ICurrentData extends Pick<INotification, 'taskId' | 'scheduledTime' | 'status' | 'type'> {
     email: string,
-    taskstatus: 'assigned' | 'in_progress' | 'completed'
+    taskStatus: 'assigned' | 'inProgress' | 'completed'
 }
 
 export interface ICreateProjectData {
@@ -83,7 +83,7 @@ export interface ICreateProjectData {
 }
 
 export interface IUpdateProjectData extends ICreateProjectData {
-    project_id: number
+    projectId: number
 }
 
 export interface IRegistrationData {
@@ -100,6 +100,6 @@ export interface IGetUsersData {
     query: string
 }
 
-export interface IUpdateEditor extends Pick<ITask, 'task_id'> {
-    editor: Pick<IOwner, 'user_id' | 'name'> | null
+export interface IUpdateEditor extends Pick<ITask, 'taskId'> {
+    editor: Pick<IOwner, 'userId' | 'name'> | null
 }

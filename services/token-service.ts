@@ -22,36 +22,36 @@ class TokenService {
 
     async saveToken(userId: number, refreshToken: string) {
         const tokenData = await PGInterface.select({
-            table: 'tokens',
-            fields: ['user_id'],
-            condition: `user_id=${userId}`
+            table: '"tokens"',
+            fields: ['"userId"'],
+            condition: `"userId"=${userId}`
         })
         if (tokenData.length > 0) {
             return await PGInterface.update({
-                table: 'tokens',
-                set: [`refresh_token='${refreshToken}'`],
-                condition: `user_id=${userId}`
+                table: '"tokens"',
+                set: [`"refreshToken"='${refreshToken}'`],
+                condition: `"userId"=${userId}`
             })
         }
         return await PGInterface.insert({
-            table: 'tokens',
-            fields: ['user_id', 'refresh_token'],
+            table: '"tokens"',
+            fields: ['"userId"', '"refreshToken"'],
             values: [userId, `'${refreshToken}'`]
         })
     }
 
     async removeToken(refreshToken: string) {
         return await PGInterface.delete({
-            table: 'tokens',
-            condition: `refresh_token='${refreshToken}'`
+            table: '"tokens"',
+            condition: `"refreshToken"='${refreshToken}'`
         })
     }
 
     async findToken(refreshToken: string) {
         return await PGInterface.select({
-            table: 'tokens',
+            table: '"tokens"',
             fields: ['*'],
-            condition: `refresh_token='${refreshToken}'`
+            condition: `"refreshToken"='${refreshToken}'`
         })
     }
 

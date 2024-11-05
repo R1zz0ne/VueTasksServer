@@ -60,54 +60,54 @@ cron.schedule(process.env.CRON_JOBS_INTERVAL!, async () => {
         const future = new Date(newDate.getTime() +
             Number(process.env.CRON_JOBS_RANGE_TIME) * 60000).toISOString();
         const res: INotification[] = await PGInterface.select({
-            table: 'notification_sla',
+            table: 'notificationSla',
             fields: ['*'],
-            condition: `scheduled_time BETWEEN '${now}' AND '${future}' AND status = 'scheduled'`
+            condition: `scheduledTime BETWEEN '${now}' AND '${future}' AND status = 'scheduled'`
         })
         res.forEach(async (record) => {
             try {
-                const compDate = record.scheduled_time;
+                const compDate = record.scheduledTime;
                 if (new Date(compDate) > newDate) {
                     await PGInterface.update({
-                        table: 'notification_sla',
+                        table: 'notificationSla',
                         set: [`status='pending'`],
-                        condition: `notification_id=${record.notification_id}`
+                        condition: `notificationId=${record.notificationId}`
                     });
                     schedule.scheduleJob(compDate, async () => {
                         const currentData: ICurrentData[] = await PGInterface.select({
-                            table: 'notification_sla',
-                            fields: ['tasks.task_id', 'notification_sla.scheduled_time', 'notification_sla.status',
-                                'notification_sla.type', 'users.email', 'tasks.status AS taskStatus'],
+                            table: 'notificationSla',
+                            fields: ['tasks.taskId', 'notificationSla.scheduledTime', 'notificationSla.status',
+                                'notificationSla.type', 'users.email', 'tasks.status AS taskStatus'],
                             join: [{
                                 type: 'INNER JOIN',
                                 table: 'tasks',
-                                firstId: 'tasks.task_id',
-                                secondId: 'notification_sla.task_id'
+                                firstId: 'tasks.taskId',
+                                secondId: 'notificationSla.taskId'
                             }, {
                                 type: 'INNER JOIN',
                                 table: 'users',
-                                firstId: 'users.user_id',
+                                firstId: 'users.userId',
                                 secondId: 'tasks.member'
                             }],
-                            condition: `notification_id=${record.notification_id}`
+                            condition: `notificationId=${record.notificationId}`
                         });
                         if (currentData[0].status === 'pending') {
                             sendEmail(currentData[0].email,
-                                `Превышен срок выполнения задачи #${currentData[0].task_id}`,
-                                emailTemplate(currentData[0].task_id, taskStatusMap[currentData[0].taskstatus], currentData[0].scheduled_time.toISOString()))
+                                `Превышен срок выполнения задачи #${currentData[0].taskId}`,
+                                emailTemplate(currentData[0].taskId, taskStatusMap[currentData[0].taskStatus], currentData[0].scheduledTime.toISOString()))
                             await PGInterface.update({
-                                table: 'notification_sla',
+                                table: 'notificationSla',
                                 set: [`status='completed'`],
-                                condition: `notification_id=${record.notification_id}`
+                                condition: `notificationId=${record.notificationId}`
                             });
                         }
                     })
                 }
             } catch (e) {
                 await PGInterface.update({
-                    table: 'notification_sla',
+                    table: 'notificationSla',
                     set: [`status='failed'`],
-                    condition: `notification_id=${record.notification_id}`
+                    condition: `notificationId=${record.notificationId}`
                 });
                 throw e
             }

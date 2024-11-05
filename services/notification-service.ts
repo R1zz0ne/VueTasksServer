@@ -2,56 +2,56 @@ import PGInterface from "../ORM/PGInterface";
 import {io} from "../index";
 
 class NotificationService {
-    async getNotificationLog(user_id: number): Promise<any> {
+    async getNotificationLog(userId: number): Promise<any> {
         const notifications = await PGInterface.select({
-            table: 'notification_log',
-            fields: ['notification_id', 'message', 'is_checked', 'created_at', 'tasks.task_id', 'tasks.name'],
+            table: '"notificationLog"',
+            fields: ['"notificationId"', '"message"', '"isChecked"', '"createdAt"', '"tasks"."taskId"', '"tasks"."name"'],
             join: [{
                 type: 'INNER JOIN',
-                table: 'tasks',
-                firstId: 'tasks.task_id',
-                secondId: 'notification_log.task_id'
+                table: '"tasks"',
+                firstId: '"tasks"."taskId"',
+                secondId: '"notificationLog"."taskId"'
             }],
-            condition: `user_id=${user_id}`,
-            order: 'notification_id ASC'
+            condition: `"userId"=${userId}`,
+            order: '"notificationId" ASC'
         })
         return notifications
     }
 
-    async addNotification(task_id: number, user_id: number, message: string): Promise<any> {
+    async addNotification(taskId: number, userId: number, message: string): Promise<any> {
         const nowDate = new Date().toUTCString();
         const notification = await PGInterface.insert({
-            table: 'notification_log',
-            fields: ['task_id', 'user_id', 'message', 'is_checked', 'created_at'],
-            values: [`${task_id}`, `${user_id}`, `'${message}'`, false, `'${nowDate}'`],
+            table: '"notificationLog"',
+            fields: ['"taskId"', '"userId"', '"message"', '"isChecked"', '"createdAt"'],
+            values: [`${taskId}`, `${userId}`, `'${message}'`, false, `'${nowDate}'`],
             returns: ['*']
         })
         const userData = await PGInterface.select({
-            table: 'users',
-            fields: ['socket_id'],
-            condition: `user_id=${user_id}`
+            table: '"users"',
+            fields: ['"socketId"'],
+            condition: `"userId"=${userId}`
         })
         const taskData = await PGInterface.select({
-            table: 'tasks',
-            fields: ['task_id', 'name'],
-            condition: `task_id=${task_id}`
+            table: '"tasks"',
+            fields: ['"taskId"', '"name"'],
+            condition: `"taskId"=${taskId}`
         })
         io.to(userData[0].socket_id).emit('getNewNotification', {
-            is_checked: notification[0].is_checked,
+            isChecked: notification[0].isChecked,
             message: notification[0].message,
             name: taskData[0].name,
-            notification_id: notification[0].notification_id,
-            task_id: taskData[0].task_id,
-            created_at: notification[0].created_at,
+            notificationId: notification[0].notificationId,
+            taskId: taskData[0].taskId,
+            createdAt: notification[0].createdAt,
         })
     }
 
-    async checkNotification(notification_id: number): Promise<any> {
+    async checkNotification(notificationId: number): Promise<any> {
         const notification = await PGInterface.update({
-            table: 'notification_log',
-            set: ['is_checked=true'],
-            condition: `notification_id=${notification_id}`,
-            returns: ['notification_id', 'is_checked']
+            table: '"notificationLog"',
+            set: ['"isChecked"=true'],
+            condition: `"notificationId"=${notificationId}`,
+            returns: ['"notificationId"', '"isChecked"']
         })
         return notification[0];
     }

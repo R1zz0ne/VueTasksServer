@@ -1,10 +1,10 @@
 class UserDTO {
-    user_id: number;
+    userId: number;
     name: string;
     email: string;
 
     constructor(model: any) {
-        this.user_id = model.user_id;
+        this.userId = model.userId;
         this.name = model.name;
         this.email = model.email;
     }

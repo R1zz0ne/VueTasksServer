@@ -4,19 +4,19 @@ import {IOwner, IProject, IProjectWithOwner, ITasksWithMember} from "../models/m
 class ProjectService {
     async createProject(name: string, description: string, ownerId: number) {
         const projectArr = await PGInterface.insert({
-            table: 'projects',
-            fields: ['name', 'description', 'owner'],
+            table: '"projects"',
+            fields: ['"name"', '"description"', '"owner"'],
             values: [`'${name}'`, `'${description}'`, `${ownerId}`],
-            returns: ['project_id', 'name', 'description', 'owner']
+            returns: ['"projectId"', '"name"', '"description"', '"owner"']
         })
         const project: IProject = projectArr[0];
         const ownerInfo: IOwner[] = await PGInterface.select({
-            table: 'users',
-            fields: ['user_id', 'name', 'email'],
-            condition: `user_id=${project.owner}`
+            table: '"users"',
+            fields: ['"userId"', '"name"', '"email"'],
+            condition: `"userId"=${project.owner}`
         })
         return {
-            project_id: project.project_id,
+            projectId: project.projectId,
             name: project.name,
             description: project.description,
             owner: ownerInfo[0],
@@ -27,19 +27,19 @@ class ProjectService {
 
     async updateProject(id: number, name: string, description: string, ownerId: number) {
         const projectArr = await PGInterface.update({
-            table: 'projects',
-            set: [`name='${name}'`, `description='${description}'`, `owner=${ownerId}`],
-            condition: `project_id=${id}`,
+            table: '"projects"',
+            set: [`"name"='${name}'`, `"description"='${description}'`, `"owner"=${ownerId}`],
+            condition: `"projectId"=${id}`,
             returns: ['*']
         })
         const project: IProject = projectArr[0];
         const ownerInfo: IOwner[] = await PGInterface.select({
-            table: 'users',
-            fields: ['user_id', 'name', 'email'],
-            condition: `user_id=${project.owner}`
+            table: '"users"',
+            fields: ['"userId"', '"name"', '"email"'],
+            condition: `"userId"=${project.owner}`
         })
         return {
-            project_id: project.project_id,
+            projectId: project.projectId,
             name: project.name,
             description: project.description,
             owner: ownerInfo[0]
@@ -49,9 +49,9 @@ class ProjectService {
     async getProjectList(data: { page: number }) {
         const limit: number = 20;
         const projects: IProjectWithOwner[] = await PGInterface.select({
-            table: 'projects',
-            fields: ['project_id', 'name'],
-            order: 'project_id',
+            table: '"projects"',
+            fields: ['"projectId"', '"name"'],
+            order: '"projectId"',
             limit: limit,
             offset: (data.page - 1) * limit
         })
@@ -60,86 +60,86 @@ class ProjectService {
 
     async getProject(id: number) {
         const projects: IProjectWithOwner[] = await PGInterface.select({
-            table: 'projects',
-            fields: ['projects.project_id', 'projects.name', 'projects.description',
-                'users.user_id AS ownid', 'users.name AS ownname', 'users.email AS ownemail',
-                'editor_user.user_id AS editid', 'editor_user.name AS editname'],
+            table: '"projects"',
+            fields: ['"projects"."projectId"', '"projects"."name"', '"projects"."description"',
+                '"users"."userId" AS "ownId"', '"users"."name" AS "ownName"', '"users"."email" AS "ownEmail"',
+                '"editorUser"."userId" AS "editId"', '"editorUser"."name" AS "editName"'],
             join: [{
                 type: 'INNER JOIN',
-                table: 'users',
-                firstId: 'users.user_id',
-                secondId: 'projects.owner'
+                table: '"users"',
+                firstId: '"users"."userId"',
+                secondId: '"projects"."owner"'
             }, {
                 type: 'LEFT JOIN',
-                table: 'users AS editor_user',
-                firstId: 'editor_user.user_id',
-                secondId: 'projects.editor'
+                table: '"users" AS "editorUser"',
+                firstId: '"editorUser"."userId"',
+                secondId: '"projects"."editor"'
             }],
-            condition: `projects.project_id=${id}`
+            condition: `"projects"."projectId"=${id}`
         })
         const tasks: ITasksWithMember[] = await PGInterface.select({
-            table: 'tasks',
-            fields: ['tasks.task_id', 'tasks.name', 'tasks.priority', 'tasks.complation_date',
-                'tasks.status', 'users.user_id AS memid', 'users.name AS memname', 'users.email AS mememail'],
+            table: '"tasks"',
+            fields: ['"tasks"."taskId"', '"tasks"."name"', '"tasks"."priority"', '"tasks"."completionDate"',
+                '"tasks"."status"', '"users"."userId" AS "memId"', '"users"."name" AS "memName"', '"users"."email" AS "memEmail"'],
             join: [{
                 type: 'INNER JOIN',
-                table: 'users',
-                firstId: 'users.user_id',
-                secondId: 'tasks.member'
+                table: '"users"',
+                firstId: '"users"."userId"',
+                secondId: '"tasks"."member"'
             }],
-            condition: `tasks.project_id=${id}`
+            condition: `"tasks"."projectId"=${id}`
         })
         const mapTasks = tasks.map((task) => {
             return {
-                task_id: task.task_id,
+                taskId: task.taskId,
                 name: task.name,
                 priority: task.priority,
-                complation_date: task.complation_date,
+                completionDate: task.completionDate,
                 member: {
-                    user_id: task.memid,
-                    name: task.memname,
-                    email: task.mememail
+                    userId: task.memId,
+                    name: task.memName,
+                    email: task.memEmail
                 },
                 status: task.status
             }
         })
         return {
-            project_id: projects[0].project_id,
+            projectId: projects[0].projectId,
             name: projects[0].name,
             description: projects[0].description,
             owner: {
-                user_id: projects[0].ownid,
-                name: projects[0].ownname,
-                email: projects[0].ownemail
+                userId: projects[0].ownId,
+                name: projects[0].ownName,
+                email: projects[0].ownEmail
             },
             tasks: mapTasks,
-            editor: projects[0].editid ? {user_id: projects[0].editid, name: projects[0].editname} : null
+            editor: projects[0].editId ? {userId: projects[0].editId, name: projects[0].editName} : null
         }
     }
 
-    async updateEditor({project_id, editor}: Pick<IProject, 'project_id' | 'editor'>) {
+    async updateEditor({projectId, editor}: Pick<IProject, 'projectId' | 'editor'>) {
         const projectArr = await PGInterface.update({
-            table: 'projects',
-            set: [`editor=${editor}`],
-            condition: `project_id=${project_id}`,
-            returns: ['project_id', 'editor']
+            table: '"projects"',
+            set: [`"editor"=${editor}`],
+            condition: `"projectId"=${projectId}`,
+            returns: ['"projectId"', '"editor"']
         })
         if (typeof projectArr[0].editor === 'number') {
             const user = await PGInterface.select({
-                table: 'users',
-                fields: ['user_id', 'name'],
-                condition: `user_id=${projectArr[0].editor}`
+                table: '"users"',
+                fields: ['"userId"', '"name"'],
+                condition: `"userId"=${projectArr[0].editor}`
             })
             return {
-                project_id: projectArr[0].project_id,
+                projectId: projectArr[0].projectId,
                 editor: {
-                    user_id: user[0].user_id,
+                    userId: user[0].userId,
                     name: user[0].name,
                 }
             }
         } else {
             return {
-                project_id: project_id,
+                projectId: projectId,
                 editor: null
             }
         }

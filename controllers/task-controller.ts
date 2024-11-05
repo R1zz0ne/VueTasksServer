@@ -8,22 +8,22 @@ import OtherService from "../services/other-service";
 
 class TaskController {
     //Создание задачи
-    async createTask(data: Omit<ITask, 'task_id' | 'status'>, Socket: Socket<DefaultEventsMap>, eventName: string) {
+    async createTask(data: Omit<ITask, 'taskId' | 'status'>, Socket: Socket<DefaultEventsMap>, eventName: string) {
         try {
             const {
-                name, description, priority, complation_date, project_id, member
+                name, description, priority, completionDate, projectId, member
             } = data;
             const taskData = await TaskService.createTask(name, description, priority,
-                complation_date, project_id, member);
-            io.to(`project_${taskData.project.project_id}`).emit(eventName, taskData)
+                completionDate, projectId, member);
+            io.to(`project_${taskData.project.projectId}`).emit(eventName, taskData)
             //Дальше для обновления списка задач у пользователя
-            const socket_id = await OtherService.getSocketIdForUserId(taskData.member.user_id)
+            const socketId = await OtherService.getSocketIdForUserId(taskData.member.userId)
             const taskListRoom = io.sockets.adapter.rooms.get(`taskList`)
-            if (taskListRoom && socket_id) {
-                const userInRoom: boolean = Array.from(taskListRoom).includes(socket_id)
+            if (taskListRoom && socketId) {
+                const userInRoom: boolean = Array.from(taskListRoom).includes(socketId)
                 if (userInRoom) {
-                    io.to(socket_id).emit('addNewTaskInList', {
-                        task_id: taskData.task_id,
+                    io.to(socketId).emit('addNewTaskInList', {
+                        taskId: taskData.taskId,
                         name: taskData.name,
                         priority: taskData.priority,
                         status: taskData.status
@@ -39,15 +39,15 @@ class TaskController {
     async updateTask(data: ITask, socket: Socket<DefaultEventsMap>, eventName: string, userData: JwtPayload) {
         try {
             const {
-                task_id, name, description, priority,
-                complation_date, project_id, member, status
+                taskId, name, description, priority,
+                completionDate, projectId, member, status
             } = data;
-            const taskData = await TaskService.updateTask(task_id, name, description, priority,
-                complation_date, project_id, member, status, userData);
-            io.to(`task_${taskData.task_id}`).emit(eventName, taskData);
+            const taskData = await TaskService.updateTask(taskId, name, description, priority,
+                completionDate, projectId, member, status, userData);
+            io.to(`task_${taskData.taskId}`).emit(eventName, taskData);
             io.to(`taskList`).emit(eventName, taskData);
-            io.to(`project_${taskData.project.project_id}`).emit(eventName, taskData);
-            io.to(`board_${taskData.project.project_id}`).emit(eventName, taskData);
+            io.to(`project_${taskData.project.projectId}`).emit(eventName, taskData);
+            io.to(`board_${taskData.project.projectId}`).emit(eventName, taskData);
         } catch (e) {
             throw e;
         }
@@ -57,9 +57,9 @@ class TaskController {
     async getUserTasks(data: any, socket: Socket<DefaultEventsMap>, eventName: string, userData: JwtPayload) {
         try {
             const totalCount = await OtherService.getTotalRecord('tasks',
-                `member=${userData.user_id} AND status!='completed'`);
+                `member=${userData.userId} AND status!='completed'`);
             socket.emit('taskTotalCount', {totalCount: Number(totalCount)});
-            const taskData = await TaskService.getUserTasks(userData.user_id, data.page, "status!='completed'");
+            const taskData = await TaskService.getUserTasks(userData.userId, data.page, "status!='completed'");
             socket.emit(eventName, taskData)
         } catch (e) {
             throw e;
@@ -80,9 +80,9 @@ class TaskController {
     async updateStatusTask(data: ITaskStatusIn, socket: Socket, eventName: string) {
         try {
             const task: ITaskStatusOut = await TaskService.updateStatusTask(data);
-            io.to(`board_${task.project_id}`).emit(eventName, task)
-            io.to(`project_${task.project_id}`).emit(eventName, task)
-            io.to(`task_${task.task_id}`).emit(eventName, task)
+            io.to(`board_${task.projectId}`).emit(eventName, task)
+            io.to(`project_${task.projectId}`).emit(eventName, task)
+            io.to(`task_${task.taskId}`).emit(eventName, task)
             io.to(`taskList`).emit(eventName, task)
         } catch (e) {
             throw e;
@@ -93,9 +93,9 @@ class TaskController {
     async getCloseUserTasks(data: any, socket: Socket<DefaultEventsMap>, eventName: string, userData: JwtPayload) {
         try {
             const totalCount = await OtherService.getTotalRecord('tasks',
-                `member=${userData.user_id} AND status='completed'`)
+                `member=${userData.userId} AND status='completed'`)
             socket.emit('taskTotalCount', {totalCount: Number(totalCount)});
-            const taskData = await TaskService.getUserTasks(userData.user_id, data.page, "status='completed'");
+            const taskData = await TaskService.getUserTasks(userData.userId, data.page, "status='completed'");
             socket.emit(eventName, taskData)
         } catch (e) {
             throw e;
@@ -103,10 +103,10 @@ class TaskController {
     }
 
     //Установка редактора задачи
-    async updateEditor(data: Pick<ITask, 'task_id' | 'editor'>, socket: Socket<DefaultEventsMap>, eventName: string) {
+    async updateEditor(data: Pick<ITask, 'taskId' | 'editor'>, socket: Socket<DefaultEventsMap>, eventName: string) {
         try {
             const editorData = await TaskService.updateEditor(data)
-            io.to(`task_${editorData.task_id}`).emit(eventName, editorData)
+            io.to(`task_${editorData.taskId}`).emit(eventName, editorData)
         } catch (e) {
             throw e;
         }

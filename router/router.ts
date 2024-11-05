@@ -52,8 +52,8 @@ const socketRouter = (socket: Socket) => {
             if (typeof userData !== 'string') {
                 PGInterface.update({
                     table: 'users',
-                    condition: `user_id=${userData.user_id}`,
-                    set: [`socket_id='${socket.id}'`],
+                    condition: `"userId"=${userData.userId}`,
+                    set: [`"socketId"='${socket.id}'`],
                 })
             }
         } catch (e) {
@@ -136,8 +136,8 @@ const socketRouter = (socket: Socket) => {
         console.log(`${socket.id} disconnected`);
         await PGInterface.update({
             table: 'users',
-            set: [`socket_id=''`],
-            condition: `socket_id='${socket.id}'`
+            set: [`"socketId"=''`],
+            condition: `"socketId"='${socket.id}'`
         })
     });
 }
