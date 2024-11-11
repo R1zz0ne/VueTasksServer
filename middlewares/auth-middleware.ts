@@ -1,14 +1,14 @@
-import apiError from "../exceptions/api-error";
 import tokenService from "../services/token-service";
+import ApiError from "../exceptions/api-error";
 
 export default function (data: any, token: any) {
     try {
         if (!token) {
-            throw apiError.UnauthorizedError()
+            throw ApiError.UnauthorizedError()
         }
         const userData = tokenService.validateAccessToken(token);
         if (!userData) {
-            throw apiError.UnauthorizedError()
+            throw ApiError.UnauthorizedError()
         }
         return userData
     } catch (error) {
