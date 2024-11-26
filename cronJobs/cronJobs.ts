@@ -60,54 +60,54 @@ cron.schedule(process.env.CRON_JOBS_INTERVAL!, async () => {
         const future = new Date(newDate.getTime() +
             Number(process.env.CRON_JOBS_RANGE_TIME) * 60000).toISOString();
         const res: INotification[] = await PGInterface.select({
-            table: 'notificationSla',
+            table: '"notificationSla"',
             fields: ['*'],
-            condition: `scheduledTime BETWEEN '${now}' AND '${future}' AND status = 'scheduled'`
+            condition: `"scheduledTime" BETWEEN '${now}' AND '${future}' AND "status" = 'scheduled'`
         })
-        res.forEach(async (record) => {
+        res.forEach(async (record): Promise<void> => {
             try {
                 const compDate = record.scheduledTime;
                 if (new Date(compDate) > newDate) {
                     await PGInterface.update({
-                        table: 'notificationSla',
-                        set: [`status='pending'`],
-                        condition: `notificationId=${record.notificationId}`
+                        table: '"notificationSla"',
+                        set: [`"status"='pending'`],
+                        condition: `"notificationId"=${record.notificationId}`
                     });
                     schedule.scheduleJob(compDate, async () => {
                         const currentData: ICurrentData[] = await PGInterface.select({
-                            table: 'notificationSla',
-                            fields: ['tasks.taskId', 'notificationSla.scheduledTime', 'notificationSla.status',
-                                'notificationSla.type', 'users.email', 'tasks.status AS taskStatus'],
+                            table: '"notificationSla"',
+                            fields: ['"tasks"."taskId"', '"notificationSla"."scheduledTime"', '"notificationSla"."status"',
+                                '"notificationSla"."type"', '"users"."email"', '"tasks"."status" AS "taskStatus"'],
                             join: [{
                                 type: 'INNER JOIN',
-                                table: 'tasks',
-                                firstId: 'tasks.taskId',
-                                secondId: 'notificationSla.taskId'
+                                table: '"tasks"',
+                                firstId: '"tasks"."taskId"',
+                                secondId: '"notificationSla"."taskId"'
                             }, {
                                 type: 'INNER JOIN',
-                                table: 'users',
-                                firstId: 'users.userId',
-                                secondId: 'tasks.member'
+                                table: '"users"',
+                                firstId: '"users"."userId"',
+                                secondId: '"tasks"."member"'
                             }],
-                            condition: `notificationId=${record.notificationId}`
+                            condition: `"notificationId"=${record.notificationId}`
                         });
                         if (currentData[0].status === 'pending') {
                             sendEmail(currentData[0].email,
                                 `Превышен срок выполнения задачи #${currentData[0].taskId}`,
                                 emailTemplate(currentData[0].taskId, taskStatusMap[currentData[0].taskStatus], currentData[0].scheduledTime.toISOString()))
                             await PGInterface.update({
-                                table: 'notificationSla',
-                                set: [`status='completed'`],
-                                condition: `notificationId=${record.notificationId}`
+                                table: '"notificationSla"',
+                                set: [`"status"='completed'`],
+                                condition: `"notificationId"=${record.notificationId}`
                             });
                         }
                     })
                 }
             } catch (e) {
                 await PGInterface.update({
-                    table: 'notificationSla',
-                    set: [`status='failed'`],
-                    condition: `notificationId=${record.notificationId}`
+                    table: '"notificationSla"',
+                    set: [`"status"='failed'`],
+                    condition: `"notificationId"=${record.notificationId}`
                 });
                 throw e
             }

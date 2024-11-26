@@ -25,7 +25,7 @@ class UserController {
     async logout(data: IRefreshTokenData, callback: Function) {
         try {
             await userService.logout(data.refreshToken);
-            callback(true)
+            callback({})
         } catch (e: any) {
             throw e;
         }

@@ -24,7 +24,7 @@ const socketControllerWrapper = (
         }
         await controller(data, socket, eventName, userData)
     } catch (e: any) {
-        socket.emit('error', {type: 'error', message: e.message});
+        socket.emit('error', {type: 'error', message: e.message, statusCode: e.status});
     }
 }
 
@@ -40,7 +40,8 @@ const socketControllerCallbackWrapper = (
         }
         await controller(data, callback, userData)
     } catch (e: any) {
-        callback({type: 'error', message: e.message});
+        console.log(e)
+        callback({type: 'error', message: e.message, statusCode: e.status});
     }
 }
 
